@@ -149,8 +149,7 @@ try:
 except:
     print ('Usage: protocol, source ip, destination ip, destination port, device ip')
     exit()
-    utput = ssh_connect.send_command(f"show ip route {ip}").split('\n')
-    
+       
 
 username = input('Username: ')
 password = input('Password: ')
