@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import getpass
 import ipaddress
 from netmiko import ConnectHandler
 
@@ -152,7 +153,7 @@ except:
        
 
 username = input('Username: ')
-password = input('Password: ')
+password = getpass.getpass('Password: ')
 
 while True: 
     cisco_switch = {
