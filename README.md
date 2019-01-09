@@ -5,4 +5,4 @@ Then it finds and connects to a next hop and repeat actions.
 Usage: ./aclchecker.py protocol, source ip, destination ip, destination port, device ip
 
 Requirements:
-python3, ipaddress, netmiko 
+python3, ipaddress, netmiko, getpassw
