@@ -87,7 +87,7 @@ class line_split:
         elif line[3] == 'any':
             acl_src = net('0.0.0.0/0')
         elif line[2] == 'any':
-             acl_src = net('0.0.0.0/0')
+            acl_src = net('0.0.0.0/0')
         else:
             acl_src = net(line[3] + '/' + line[4])
         return acl_src
@@ -100,7 +100,7 @@ class line_split:
         elif line[5] == 'any':
             acl_dst = net('0.0.0.0/0')
         elif line[3] == 'any':
-             acl_dst = net('0.0.0.0/0')
+            acl_dst = net('0.0.0.0/0')
         else:
             acl_dst = net(line[5] + '/' + line[6])
         return acl_dst
