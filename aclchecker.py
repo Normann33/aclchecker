@@ -84,10 +84,6 @@ class line_split:
         line = line.split()
         if line[3] == 'host':
             acl_src = net(line[4])
-        elif line[3] == 'any':
-            acl_src = net('0.0.0.0/0')
-        elif line[2] == 'any':
-            acl_src = net('0.0.0.0/0')
         else:
             acl_src = net(line[3] + '/' + line[4])
         return acl_src
@@ -98,8 +94,6 @@ class line_split:
         elif line[5] == 'host':
             acl_dst = net(line[6])
         elif line[5] == 'any':
-            acl_dst = net('0.0.0.0/0')
-        elif line[3] == 'any':
             acl_dst = net('0.0.0.0/0')
         else:
             acl_dst = net(line[5] + '/' + line[6])
@@ -129,7 +123,7 @@ def find_match(acl, x):
         message = red + 'BLOCKED ' + bcolors.ENDC
     for line in acl[1::]:
         try:
-            if x in line and prot in line and src in l1.acl_src(line) and dst in l1.acl_dst(line) and (l1.check_port(line, dst_port) == True or 'eq' not in line or 'range' not in line) and 'established' not in line:
+            if x in line and prot in line and src in l1.acl_src(line) and dst in l1.acl_dst(line) and (l1.check_port(line, dst_port) == True or ('eq' not in line and 'range' not in line)) and 'established' not in line:
                 print (message + f"Matched line:{line.strip()}")
                 return 'found'
                 break
