@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import getpass
 import ipaddress
+import getpass
 from netmiko import ConnectHandler
 
 class bcolors:
@@ -18,11 +18,12 @@ class bcolors:
 green = bcolors.OKGREEN + bcolors.BOLD
 red = bcolors.FAIL + bcolors.BOLD
 
-addr = ipaddress.ip_address 
+addr = ipaddress.ip_address # Слегка сократим имена функций
 net = ipaddress.ip_network
 
 
 def find_acl(ip, x):
+# Ищем интерфейс и access-list, x - это in или out
     count = 2
     while count > 0:
         output = ssh_connect.send_command(f"show ip route {ip}").split('\n')
@@ -80,21 +81,20 @@ def port_replace(port):
         return port
 
 class line_split:
+# Разбираем строку из аксесс-листа
     def acl_src(self, line):
-        line = line.split()
+        line = line.replace('any', '0.0.0.0 0.0.0.0').split()
         if line[3] == 'host':
             acl_src = net(line[4])
         else:
             acl_src = net(line[3] + '/' + line[4])
         return acl_src
     def acl_dst(self, line):
-        line = line.split()
+        line = line.replace('any', '0.0.0.0 0.0.0.0').split()
         if line[4] =='host':
             acl_dst = net(line[5])
         elif line[5] == 'host':
             acl_dst = net(line[6])
-        elif line[5] == 'any':
-            acl_dst = net('0.0.0.0/0')
         else:
             acl_dst = net(line[5] + '/' + line[6])
         return acl_dst
@@ -112,32 +112,36 @@ class line_split:
             x = int(port_replace(line[e+1]))
             if port == x:
                 return True
+            else:
+                return False
         else:
             return False
 
-
 def find_match(acl, x):
-    if x == 'permit':
-        message = green + 'PASSED ' + bcolors.ENDC
-    else:
-        message = red + 'BLOCKED ' + bcolors.ENDC
+# Ищем совпадения в access-list-e, x - permit or deny
     for line in acl[1::]:
         try:
             if x in line and prot in line and src in l1.acl_src(line) and dst in l1.acl_dst(line) and (l1.check_port(line, dst_port) == True or ('eq' not in line and 'range' not in line)) and 'established' not in line:
-                print (message + f"Matched line:{line.strip()}")
-                return 'found'
+                return line 
                 break
             elif x in line and ' ip ' in line and src in l1.acl_src(line) and dst in l1.acl_dst(line):
-                print (message + f"Matched line:{line.strip()}")
-                return 'found'
+                return line 
                 break
         except ValueError:
             pass
     else:
-        if x == 'deny':
-            pass
-        else:
-            print (red + 'Blocked by implicit deny' + bcolors.ENDC)
+        line = '99999 deny ip any any'
+        return line
+def compare():
+    permit = find_match(acl, 'permit')
+    deny = find_match(acl, 'deny')
+    if int(permit.split()[0]) < int(deny.split()[0]):
+        print(green + 'PASSED ' + bcolors.ENDC + permit)
+    elif int(permit.split()[0]) > int(deny.split()[0]):
+        print(red + 'BLOCKED ' + bcolors.ENDC + deny)
+    else: 
+        print (red + 'Blocked by implicit deny' + bcolors.ENDC)
+
 
 try:
     prot = sys.argv[1] # Protocol
@@ -148,7 +152,7 @@ try:
 except:
     print ('Usage: protocol, source ip, destination ip, destination port, device ip')
     exit()
-       
+    
 
 username = input('Username: ')
 password = getpass.getpass('Password: ')
@@ -180,8 +184,8 @@ while True:
         exit() 
     if acl == 'noacl':
         print('No access-list, ' + green + 'PASSED' + bcolors.ENDC)
-    elif find_match(acl, 'deny') != 'found':
-        find_match(acl, 'permit')
+    else:
+        compare()
     print('\n')
     print('OUT:\n')
     try:
@@ -191,8 +195,9 @@ while True:
         exit()
     if acl == 'noacl':
         print('No access-list, ' + green + 'PASSED' + bcolors.ENDC)
-    elif find_match(acl, 'deny') != 'found':
-        find_match(acl, 'permit')
+    else:
+        compare()
+
     print('\n')
     device = find_nexthop(dst)
 
