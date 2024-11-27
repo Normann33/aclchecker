@@ -1,0 +1,162 @@
+<head>
+    <script src="../static/js/socket.io.min.js"></script>
+</head>
+{% extends 'base.html' %}
+{% block content %}
+<!-- <body> -->
+    <div style="font-family: monospace;">
+        <h2 >Task Status</h2><br>
+        <p>{{ inputString }}</p>
+    </div>
+    <div id="status", class="work">Work in progress<span id="dots"></span></div>
+    <div id="hostname">
+        <!-- Данные будут добавляться сюда -->
+    </div>
+    <div id="results">
+        
+        <!-- Данные будут добавляться сюда -->
+    </div>
+    <script>
+        const dots = document.getElementById('dots');
+        let dotCount = 0;
+
+        // Анимация точек
+        const animateDots = setInterval(() => {
+            dots.textContent = '.'.repeat(dotCount);
+            dotCount = (dotCount + 1) % 4; // Меняем количество точек от 0 до 3
+        }, 500);
+
+        const taskId = new URLSearchParams(window.location.search).get('task_id');
+        // const taskId = "{{ task_id }}";
+        const socket = io('/task');  // Подключаем пространство /task
+        const statusDiv = document.getElementById('status');  // Блок статуса
+        
+
+        socket.on('connect', function() {
+            console.log("SocketIO подключен к пространству /task");
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error("Ошибка подключения:", error);
+        });
+
+        console.log("Socket.IO подключён:", socket.connected);
+
+        socket.emit('join', { task_id: taskId });
+
+        socket.on('task_update', function(data) {
+            console.log("Получены данные:", data);
+
+            // Получаем контейнер для результатов
+            const resultsDiv = document.getElementById('results');
+            const hostnameResult = document.getElementById('hostname');
+
+            // Создаём блок для hostname
+            let hostnameDiv = document.getElementById(`hostname-${data.index}`);
+            if (!hostnameDiv){
+                const itemP = document.createElement('p');
+                hostnameDiv = document.createElement('div');
+                hostnameDiv.classList.add('hostname');
+                hostnameDiv.id = `hostname-${data.index}`;
+                hostnameDiv.innerHTML = `${data.hostname}`;
+                itemP.appendChild(hostnameDiv);
+                resultsDiv.appendChild(itemP);
+            }
+            // Проверяем, существует ли блок для текущего индекса
+            let indexDiv = document.getElementById(`index-${data.index}`);
+            if (!indexDiv) {
+                // Если нет, создаём новый блок для индекса
+                indexDiv = document.createElement('div');
+                indexDiv.id = `index-${data.index}`;
+                indexDiv.classList.add('container');
+                resultsDiv.appendChild(indexDiv);
+            }
+
+            // Создаём элемент для ключа и значения
+            const itemDiv = document.createElement('span');
+            const itemP = document.createElement('p');
+            const key = Object.keys(data).find(k => k !== 'index');
+            if (data.vrf){
+                // itemDiv.classList.add('title')
+                itemDiv.innerHTML = `VRF: <span class="title">${data.vrf}</span>`;
+                itemP.appendChild(itemDiv);
+                indexDiv.appendChild(itemP);
+                let itemIn = document.getElementById(`itemIn-${data.index}`);
+                if (!itemIn){
+                    itemIn = document.createElement('span');
+                    itemIn.id = `itemIn-${data.index}`;
+                    itemIn.innerHTML = `<br><span class="title">IN:</span><br>`;
+                    itemP.appendChild(itemIn);
+                    indexDiv.appendChild(itemP);
+            }
+            }
+            
+            if (data.srciface){
+                itemDiv.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;Interface: <span class="title">${data.srciface}</span>`;
+                itemP.appendChild(itemDiv);
+                indexDiv.appendChild(itemP);
+            }
+            if (data.srcaclname){
+                itemDiv.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;Access-list: <span class="title">${data.srcaclname}</span>`;
+                itemP.appendChild(itemDiv);
+                indexDiv.appendChild(itemP);
+            }
+            if (data.srcresult){
+                if (data.srcresult.includes('PASSED')){
+                    itemDiv.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;<span class="passed">${data.srcresult}</span>`;
+                }
+                else {
+                    itemDiv.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;<span class="blocked">${data.srcresult}</span>`;
+                }
+                itemP.appendChild(itemDiv);
+                indexDiv.appendChild(itemP);
+                let itemOut = document.getElementById(`itemOut-${data.index}`);
+                if (!itemOut){
+                    itemOut = document.createElement('span');
+                    itemOut.id = `itemOut-${data.index}`;
+                    itemOut.innerHTML = `<br><span class="title">OUT:</span><br>`;
+                    itemP.appendChild(itemOut);
+                    indexDiv.appendChild(itemP);
+                }
+            }
+            
+            if (data.dstiface){
+                itemDiv.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;Interface: <span class="title">${data.dstiface}</span>`;
+                itemP.appendChild(itemDiv);
+                indexDiv.appendChild(itemP);
+            }
+            if (data.dstaclname){
+                itemDiv.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;Access-list: <span class="title">${data.dstaclname}</span>`;
+                itemP.appendChild(itemDiv);
+                indexDiv.appendChild(itemP);
+            }
+            if (data.dstresult){
+                if (data.dstresult.includes('PASSED')){
+                    itemDiv.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;<span class="passed">${data.dstresult}</span>`;
+                }
+                else {
+                    itemDiv.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;<span class="blocked">${data.dstresult}</span>`;
+                }
+                itemP.appendChild(itemDiv);
+                indexDiv.appendChild(itemP);
+            }
+            if (data.nexthop){
+                itemDiv.innerHTML = `Next hop: <span class="ip">${data.nexthop}</span>`;
+                itemP.appendChild(itemDiv);
+                indexDiv.appendChild(itemP);
+            }
+            if (data.endmessage){
+                itemDiv.innerHTML = `${data.endmessage}`;
+                itemP.appendChild(itemDiv);
+                indexDiv.appendChild(itemP);
+            }
+
+        });
+        socket.on('task_complete', function() {
+            console.log("Задача завершена");
+            statusDiv.textContent = "Completed";  // Изменяем статус
+            statusDiv.classList.add('complete');  // Меняем стиль
+            clearInterval(animateDots); // Останавливаем анимацию
+        });
+    </script>
+{% endblock %}

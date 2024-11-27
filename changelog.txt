@@ -1,0 +1,15 @@
+Aclchecker v 0.10
+
+What's new:
+- Backend rewritten on Flask
+- TACACS authentication
+- Arista support
+- Cisco ASA support
+- acl checker runs with logged in user credentials
+- Session timeout
+- Input validation
+- TTL for route loops (TTL = 20)
+- Asynchronous tasks (Celery)
+- Encryption for user credentials and TACACS key
+- Non-standart masks support (like 0.1.0.255)
+- Various fixes and optimisations

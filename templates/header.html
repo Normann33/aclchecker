@@ -1,0 +1,16 @@
+<header style="font-family:monospace">
+    <div class="navbar">
+        <div>
+            <h1>AclChecker</h1>
+            <p>Version 0.10 beta</p><br>
+        </div>
+        <div>
+            {% if session.username %}
+                {{ session.username }} logged in.<br><br> 
+                <a href="/">Home</a>
+                <a href="/about">About</a>
+                <a href="/logout">Logout</a>
+            {% endif %}
+        </div>
+    </div>
+</header>

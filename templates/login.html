@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AclChecker</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+
+<body style="font-family:monospace">
+    <div>
+        <h1 style="font-family:monospace;">AclChecker</h1>
+    </div>
+    <div class="ver">Version 0.10</div>
+    <div>
+        <form method="POST" action="/login">
+            Login<br>
+            <input type="text" name="username" id="username"></input><br>
+            Password<br>
+            <input type="password" name="password" id="password"></input>
+            {% if error %}
+                <span style="color: red;">Invalid login or password!</span>
+            {% endif %}
+            <br>
+    </div>
+        <div>
+            <button type="submit" name="action" value="Login">Login</button>
+        </div>
+        </form>
+
+</body>
+</html>

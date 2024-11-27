@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AclChecker</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <div id="result"></div>
+    
+
+</head>
+
+<body style="font-family:monospace">
+    <div class="navbar">
+        <div>
+            <h1>AclChecker</h1>
+            <p>Version 0.10 beta</p><br>
+        </div>
+        <div>
+            {% if session.username %}
+                {{ session.username }} logged in.<br><br> 
+                <a href="/">Home</a>
+                <a href="/about">About</a>
+                <a href="/logout">Logout</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="status-message">
+        <p id="status-message" style="display: none;">Work in progress...</p>
+    </div>
+    
+    <div>
+        <form id="taskForm" method="POST" action="{{ url_for('aclchecker') }}">
+            Protocol (tcp|udp|ip|icmp)<br>
+            <input type="text" name="protocol" id="protocol" value="{{ prot }}"></input>
+            {% if errors and errors['protocol'] %}
+                <span style="color: red;">Invalid protocol!</span>
+            {% endif %}
+            <br>
+            Source IP<br>
+            <input type="text" name="src" id="src" value="{{ src }}"></input>
+            {% if errors and errors['srcaddress'] %}
+                <span style="color: red;">Invalid address!</span>
+            {% endif %}<br>
+            Destination IP<br>
+            <input type="text" name="dst" id="dst" value="{{ dst }}"></input>
+            {% if errors and errors['dstaddress'] %}
+                <span style="color: red;">Invalid address!</span>
+            {% endif %}<br><br>
+            Destination port<br>
+            <input type="text" name="dport" id="dport" value="{{ dst_port }}"></input>
+            {% if errors and errors['port'] %}
+                <span style="color: red;">Invalid port!</span>
+            {% endif %}<br><br>
+            First hop<br>
+            <input type="text" name="gw" id="gw" value="{{ gw }}"></input>
+            {% if errors and errors['gw'] %}
+                <span style="color: red;">Invalid gateway!</span>
+            {% endif %}<br><br>
+            VRF on first hop (optional)<br>
+            <input type="text" name="vrf" id="vrf" value='default'></input>
+            {% if errors and errors['vrf'] %}
+                <span style="color: red;">Invalid VRF!</span>
+            {% endif %}<br><br>
+            <br>
+  
+        <script>
+            async function checkTaskStatus() {
+                const response = await fetch(`/status/{{ task_id }}`);
+                const data = await response.json();
+    
+                if (data.status === "SUCCESS") {
+                    window.location.href = `/result/{{ task_id }}`;
+                } else if (data.status === "FAILURE") {
+                    document.body.innerHTML = "<h2>Error occurred in task processing.</h2>";
+                } else {
+                    document.getElementById("status-message").style.display = "block";
+                    setTimeout(checkTaskStatus, 3000);
+                }
+            }
+    
+            checkTaskStatus();
+              // Обработка отправки формы
+            document.getElementById("taskForm").addEventListener("submit", function(event) {
+            // Отображаем сообщение "Work in progress..."
+        });
+        </script>
+</body>
+</html>
