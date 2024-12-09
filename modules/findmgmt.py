@@ -10,11 +10,11 @@ def findmgmt(addr):
         for config in files[2]:
             with open(os.path.join('configs/', config), 'r') as f:
                 for line in f.readlines():
-                    if re.search(rf"(ip address {addr})(\b|/)", line):
+                    if re.search(rf'(ip address {addr})(\b|/)', line):
                         return config
     else:
         return addr
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     findmgmt(addr)
     

@@ -7,7 +7,7 @@ net = ipaddress.ip_network
 
 l1 = LineSplit()
 
-def checkMask(ip_str, network_line):
+def check_mask(ip_str, network_line):
         # Преобразуем строки в объекты IP
         network_line = network_line.split('/')
         network_str = network_line[0]
@@ -24,18 +24,18 @@ def checkMask(ip_str, network_line):
         # Проверяем, попадает ли IP в сеть с использованием маски
         return (ip_bin & ~mask_bin) == (network_bin & ~mask_bin)
 
-def checkIp(ip, network):
+def check_ip(ip, network):
     try:
         return (addr(ip) in net(network))
     except:
-        return checkMask(ip, network)
+        return check_mask(ip, network)
 
-def Find_match(acl, x, src, dst, dst_port, prot):
+def find_match(acl, x, src, dst, dst_port, prot):
 # Ищем совпадения в access-list-e, x - permit or deny
     for line in acl:
         acl_src, acl_dst = l1.acl_addr(line)
         try:
-            if x in line and prot in line and checkIp(src, acl_src) and checkIp(dst, acl_dst) and 'established' not in line and (l1.check_port(line, dst_port) == True or ('eq' not in line and 'range' not in line)) and 'established' not in line:
+            if x in line and prot in line and check_ip(src, acl_src) and check_ip(dst, acl_dst) and 'established' not in line and (l1.check_port(line, dst_port) == True or ('eq' not in line and 'range' not in line)) and 'established' not in line:
                 return line 
                 break
             elif x in line and ' ip ' in line and src in acl_src and dst in acl_dst:
@@ -49,5 +49,5 @@ def Find_match(acl, x, src, dst, dst_port, prot):
         line = '99999 deny ip any any'
         return line        
     
-if __name__ == "__main__":
-    Find_match(acl, x)
+if __name__ == '__main__':
+    find_match(acl, x, src, dst, dst_port, prot)

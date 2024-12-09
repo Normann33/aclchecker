@@ -17,10 +17,8 @@ from tacacs_plus.flags import TAC_PLUS_ACCT_FLAG_START, TAC_PLUS_ACCT_FLAG_WATCH
 from datetime import timedelta, datetime
 from cryptography.fernet import Fernet
 import webaclchecker
-import webaclcheckerdev
 from modules import validate
 from modules import config
-from testyield import external_function
 
 app = Flask(__name__)
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -35,8 +33,8 @@ Session(app)
 
 cli = TACACSClient('194.247.148.131', 49, tacacs_key, timeout=10, family=socket.AF_INET)
 
-CORS(app,resources={r"/*":{"origins":"*"}})
-socketio = SocketIO(app, message_queue='redis://localhost:6379/0', async_mode='threading', cors_allowed_origins="*")
+CORS(app,resources={r'/*':{'origins':'*'}})
+socketio = SocketIO(app, message_queue='redis://localhost:6379/0', async_mode='threading', cors_allowed_origins='*')
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
@@ -46,7 +44,7 @@ net = ipaddress.ip_network
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-inputString = '' # Строка с параметрами запроса в aclchecker
+input_string = '' # Строка с параметрами запроса в aclchecker
 
 
 @app.before_request
@@ -56,26 +54,26 @@ def make_session_permanent():
 
 @socketio.on('connect', namespace='/task')
 def task_connect():
-    print("Клиент подключился к пространству /task")
+    print('Клиент подключился к пространству /task')
 
 @app.route('/task')
 def task_status():
     task_id = request.args.get('task_id')
-    return render_template('result.html', task_id=task_id, inputString=inputString)
+    return render_template('result.html', task_id=task_id, input_string=input_string)
 
 @socketio.on('join', namespace='/task')
 def on_join(data):
     # Пользователь подключается к комнате, связанной с его task_id
     task_id = data['task_id']
     join_room(task_id)
-    print(f"Пользователь подключился к комнате: {task_id}")
+    print(f'Пользователь подключился к комнате: {task_id}')
 
 @celery.task
 def run_webaclchecker(username, password, prot, src, dst, dst_port, gw, vrf, task_id):
     
     for data in webaclchecker.run(username, password,
                 prot, addr(src), addr(dst), dst_port, gw, vrf):
-        print(f"Отправка данных: {data}")  # Для отладки
+        print(f'Отправка данных: {data}')  # Для отладки
         socketio.emit('task_update', data, to=task_id, namespace='/task')
     socketio.emit('task_complete', {"task_id": task_id}, to=task_id, namespace='/task')
 
@@ -96,7 +94,7 @@ def login():
             password = request.form['password']
             auth = cli.authenticate(username, password)
         except:
-            error = "Invalid login or password"
+            error = 'Invalid login or password'
             return render_template('login.html', error = error)
         if auth.valid:
             session['username'] = username
@@ -124,7 +122,7 @@ def index():
 @login_required
 def aclchecker():
     task_id = str(uuid.uuid4())
-    global inputString
+    global input_string
     gw = ''
     src = ''
     dst = ''
@@ -133,23 +131,23 @@ def aclchecker():
     vrf = 'default'
     start = request.form['action'] == 'Start'
     if request.method == 'POST':
-        inputResult = request.form
-        gw = inputResult['gw']
-        src = inputResult['src']
-        dst = inputResult['dst']
-        dst_port = inputResult['dport']
-        prot = inputResult['protocol']
-        vrf = inputResult['vrf']
+        input_result = request.form
+        gw = input_result['gw']
+        src = input_result['src']
+        dst = input_result['dst']
+        dst_port = input_result['dport']
+        prot = input_result['protocol']
+        vrf = input_result['vrf']
     if start:
-        errors = validate.validateAll(prot, src, dst, dst_port, gw, vrf='default')
+        errors = validate.validate_all(prot, src, dst, dst_port, gw, vrf='default')
         if len(errors) == 0:
             try:
                 username = session['username']
                 decrypted_password = cipher_suite.decrypt(session['password']).decode()
-                inputString = f'Protocol: {prot}, Source: {src}, Destination: {dst}, Port: {dst_port}, First hop: {gw}, VRF: {vrf}'
+                input_string = f'Protocol: {prot}, Source: {src}, Destination: {dst}, Port: {dst_port}, First hop: {gw}, VRF: {vrf}'
                 run_webaclchecker.apply_async(args=(username, decrypted_password, prot, src, dst, dst_port, gw, vrf, task_id))
                 with open('ac.log', 'a') as f:
-                    data = (str(now) + ' ' + session['username'] + ' ' + str(inputResult) + ' ' + '\n')
+                    data = (str(now) + ' ' + session['username'] + ' ' + str(input_result) + ' ' + '\n')
                     f.write(data)
                     return redirect(url_for('task_status', task_id=task_id))
             except KeyError:
@@ -170,4 +168,4 @@ def about():
 
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, ssl_context=('cert.pem', 'key.pem'))
+    socketio.run(app, host='0.0.0.0', port=5000, ssl_context=('ac.net.rts-cert.pem', 'ac.net.rts-key.pem'))

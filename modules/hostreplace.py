@@ -1,7 +1,7 @@
 
-def hostReplace(line):
+def host_replace(line):
     lineList = line.split()
-    indices = [i for i, x in enumerate(lineList) if x == "host"]
+    indices = [i for i, x in enumerate(lineList) if x == 'host']
     for i in range(len(indices)):
         r = indices[i]
         x = r+1
@@ -10,5 +10,5 @@ def hostReplace(line):
     line = ' '.join(lineList)
     return line
 
-if __name__ == "__main__":
-    hostReplace(line)
+if __name__ == '__main__':
+    host_replace(line)

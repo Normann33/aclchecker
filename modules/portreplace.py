@@ -11,5 +11,5 @@ def port_replace(port):
     else:
         return port
     
-if __name__ == "__main__":
+if __name__ == '__main__':
     print(port_replace(port))

@@ -1,0 +1,3 @@
+SECRET_KEY = b''
+TACACS_KEY = b''
+ENABLE_KEY = b''

@@ -64,7 +64,11 @@
                 <span style="color: red;">Invalid VRF!</span>
             {% endif %}<br><br>
             <br>
-  
+        </div>
+        <div>
+            <button type="submit" name="action" value="Start" onclick="showInProgress()">Start</button>
+        </div>
+        </form>
         <script>
             async function checkTaskStatus() {
                 const response = await fetch(`/status/{{ task_id }}`);

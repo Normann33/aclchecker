@@ -8,9 +8,9 @@ net = ipaddress.ip_network
 class LineSplit:
 # Разбираем строку из аксесс-листа
 
-    def convertToCidr(self, ip, mask):
+    def convert_to_cidr(self, ip, mask):
         # Преобразуем маску в CIDR
-        network = ipaddress.ip_network(f"{ip}/{mask}", strict=False)
+        network = ipaddress.ip_network(f'{ip}/{mask}', strict=False)
         return str(network)
 
     def acl_addr(self, line):
@@ -20,17 +20,17 @@ class LineSplit:
         acl_src = ''
         acl_dst = ''
         port_line = ''
-        ipMaskPattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2})')
-        ipAddresses = ipMaskPattern.findall(_line)
+        ip_mask_pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2})')
+        ip_addresses = ip_mask_pattern.findall(_line)
         results = []
-        for match in ipAddresses:
+        for match in ip_addresses:
             if match[0] and match[1]:
                 try:
-                    cidr = self.convertToCidr(match[0], match[1])
+                    cidr = self.convert_to_cidr(match[0], match[1])
                     results.append(cidr)
                 except:
                     results.append(f'{match[0]}/{match[1]}')
-                    print("DEBUG convertToCidr: Не могу разобрать строку", line)      
+                    print('DEBUG convert_to_cidr: Не могу разобрать строку', line)      
             elif match[2]:  # Формат CIDR
                 results.append(match[2])
         try:
@@ -82,5 +82,5 @@ class LineSplit:
 
     
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     line_split()

@@ -1,4 +1,4 @@
-def objGroupReplace (line, name, item):
+def obj_group_replace (line, name, item):
     '''Функция заменяет имя object-group в строке на ip-адреса'''
     lineList = line.split()
     for i in lineList:
@@ -7,5 +7,5 @@ def objGroupReplace (line, name, item):
             line = ' '.join(lineList)
             return line
         
-if __name__ == "__main__":
-    objGroupReplace(line, name, item)
+if __name__ == '__main__':
+    obj_group_replace(line, name, item)
